@@ -30,6 +30,10 @@ public class Surf {
 	double[] dangers;
 	ArrayList<PredictionPath> predictionPaths;
 
+	public static Surf getInstance(AdvancedRobot abot) {
+		return new Surf(abot);
+	}
+	
 	public Surf(AdvancedRobot abot) {
 		bot = abot;
 

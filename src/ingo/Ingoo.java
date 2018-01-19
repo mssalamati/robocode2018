@@ -7,54 +7,31 @@ import java.awt.Color;
 
 public class Ingoo extends AdvancedRobot {
 
-	public static final boolean MC = false, TC = false;
+	public static final boolean rnew = false;
 	static int[] deadbots;
 	Surf move;
 	Radar radar;
 	TankTube gun;
-	
+
 	public void run() {
-		getDataDirectory();
-		if (deadbots == null)
-			deadbots = new int[getOthers() + 1];
-		setAdjustRadarForGunTurn(true);
-		setAdjustRadarForRobotTurn(true);
-		setAdjustGunForRobotTurn(true);
-		setColors(Color.BLACK, Color.RED, Color.BLACK);
-		if (!TC)
-			try {
-				move = new Surf(this);
-			} catch (Exception ex) {
-				contain(ex);
-			}
-		try {
-			radar = new Radar(this);
-		} catch (Exception ex) {
-			contain(ex);
-		}
-		try {
-			gun = new TankTube(this);
-		} catch (Exception ex) {
-			contain(ex);
-		}
+		init();
 		int i = 0;
 		while (true) {
-			if (!TC)
+			if (!rnew)
 				try {
 					move.onTick();
 				} catch (Exception ex) {
-					contain(ex);
+					ex.printStackTrace();
 				}
-
 			try {
 				radar.onTick();
 			} catch (Exception ex) {
-				contain(ex);
+				ex.printStackTrace();
 			}
 			try {
 				gun.onTick();
 			} catch (Exception ex) {
-				contain(ex);
+				ex.printStackTrace();
 			}
 			if (i++ >= 10)
 				try {
@@ -66,78 +43,106 @@ public class Ingoo extends AdvancedRobot {
 		}
 	}
 
+	public void init() {
+		getDataDirectory();
+		if (deadbots == null)
+			deadbots = new int[getOthers() + 1];
+		setAdjustRadarForGunTurn(true);
+		setAdjustRadarForRobotTurn(true);
+		setAdjustGunForRobotTurn(true);
+		setColors(Color.BLACK, Color.GREEN, Color.BLACK);
+
+		if (!rnew) {
+			try {
+				move = Surf.getInstance(this);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+		try {
+			radar = new Radar(this);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		try {
+			gun = new TankTube(this);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
 	public void onSkippedTurn(SkippedTurnEvent e) {
 
 	}
 
 	public void onScannedRobot(ScannedRobotEvent e) {
-		if (!TC)
+		if (!rnew)
 			try {
 				move.onScannedRobot(e);
 			} catch (Exception ex) {
-				contain(ex);
+				ex.printStackTrace();
 			}
 		try {
 			radar.onScannedRobot(e);
 		} catch (Exception ex) {
-			contain(ex);
+			ex.printStackTrace();
 		}
 		try {
 			gun.onScannedRobot(e);
 		} catch (Exception ex) {
-			contain(ex);
+			ex.printStackTrace();
 		}
 	}
 
 	public void onRobotDeath(RobotDeathEvent e) {
-		if (!TC)
+		if (!rnew)
 			try {
 				move.onRobotDeath(e);
 			} catch (Exception ex) {
-				contain(ex);
+				ex.printStackTrace();
 			}
 		try {
 			radar.onRobotDeath(e);
 		} catch (Exception ex) {
-			contain(ex);
+			ex.printStackTrace();
 		}
 		try {
 			gun.onRobotDeath(e);
 		} catch (Exception ex) {
-			contain(ex);
+			ex.printStackTrace();
 		}
 
 	}
 
 	public void onHitByBullet(HitByBulletEvent e) {
-		if (!TC)
+		if (!rnew)
 			try {
 				move.onHitByBullet(e);
 			} catch (Exception ex) {
-				contain(ex);
+				ex.printStackTrace();
 			}
 	}
 
 	public void onBulletHitBullet(BulletHitBulletEvent e) {
-		if (!TC)
+		if (!rnew)
 			try {
 				move.onBulletHitBullet(e);
 			} catch (Exception ex) {
-				contain(ex);
+				ex.printStackTrace();
 			}
 	}
 
 	public void onBulletHit(BulletHitEvent e) {
-		if (!TC)
+		if (!rnew)
 			try {
 				move.onBulletHit(e);
 			} catch (Exception ex) {
-				contain(ex);
+				ex.printStackTrace();
 			}
 	}
 
 	public void onPaint(java.awt.Graphics2D g) {
-		if (!TC)
+		if (!rnew)
 			move.onPaint(g);
 		gun.onPaint(g);
 	}
@@ -147,7 +152,7 @@ public class Ingoo extends AdvancedRobot {
 			gun.onDeath(e);
 			deadbots[getOthers()]++;
 		} catch (Exception ex) {
-			contain(ex);
+			ex.printStackTrace();
 		}
 	}
 
@@ -156,21 +161,7 @@ public class Ingoo extends AdvancedRobot {
 			gun.onWin(e);
 			deadbots[0]++;
 		} catch (Exception ex) {
-			contain(ex);
-		}
-	}
-
-	public void contain(Exception e) {
-
-		e.printStackTrace();
-
-		try {
-			PrintStream out = new PrintStream(
-					new RobocodeFileOutputStream(getDataFile((int) (Math.random() * 100) + ".error")));
-			e.printStackTrace(out);
-			out.flush();
-			out.close();
-		} catch (IOException ioex) {
+			ex.printStackTrace();
 		}
 	}
 
@@ -179,11 +170,11 @@ public class Ingoo extends AdvancedRobot {
 	}
 
 	public void bulletFired(Bullet b) {
-		if (!TC)
+		if (!rnew)
 			try {
 				move.bulletFired(b);
 			} catch (Exception ex) {
-				contain(ex);
+				ex.printStackTrace();
 			}
 	}
 
