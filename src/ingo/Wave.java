@@ -4,16 +4,16 @@ import java.util.*;
 
 import robocode.util.*;
 
-public class MeleeWave implements HistoryLog.LogListener{
+public class Wave implements HistoryLog.LogListener{
 
     double waveWeight;
 
     String firedBy;
-    EnemyInfo firer;
+    DangerBot firer;
 
     Point2D.Double fireLocation;
 
-    Hashtable<String,EnemyInfo> snapshot = new Hashtable<String,EnemyInfo>();
+    Hashtable<String,DangerBot> snapshot = new Hashtable<String,DangerBot>();
 
     long fireTime;
 
@@ -42,12 +42,10 @@ public class MeleeWave implements HistoryLog.LogListener{
     void buildSnapshot(HistoryLog log){
         snapshot.clear();
         Point2D.Double[] corners = new Point2D.Double[]{new Point2D.Double(0,0),
-                                                        new Point2D.Double(0,MeleeSurf.MAX_Y),
-                                                        new Point2D.Double(MeleeSurf.MAX_X,0),
-                                                        new Point2D.Double(MeleeSurf.MAX_X,MeleeSurf.MAX_Y)};
+                                                        new Point2D.Double(0,Surf.MAX_Y),
+                                                        new Point2D.Double(Surf.MAX_X,0),
+                                                        new Point2D.Double(Surf.MAX_X,Surf.MAX_Y)};
  
-//         HistoryLog.InterpolatedLogEntry firerAtFire = log.getInterpolatedNearest(firedBy, fireTime);
-
         long dataTime = fireTime;
         HashMap<String, HistoryLog.InterpolatedLogEntry> botData = log.getAllNearest(dataTime);
 
@@ -68,16 +66,16 @@ public class MeleeWave implements HistoryLog.LogListener{
             if(ei.waitingOnData)
                 log.updateOnNewData(botName, this);
 
-            EnemyInfo cp = new EnemyInfo();
+            DangerBot cp = new DangerBot();
             cp.location = ei.location;
             cp.energy = ei.energy;
             cp.name = botName;
             cp.heading = ei.heading;
             cp.velocity = ei.velocity;
 
-            double targetBearing = MeleeSurf.absoluteBearing(fireLocation,cp.location);
-            cp.latVel = cp.velocity*FastTrig.sin(cp.heading - targetBearing);
-            cp.advVel = cp.velocity*FastTrig.cos(cp.heading - targetBearing);
+            double targetBearing = Surf.absoluteBearing(fireLocation,cp.location);
+            cp.latVel = cp.velocity*HandBrake.sin(cp.heading - targetBearing);
+            cp.advVel = cp.velocity*HandBrake.cos(cp.heading - targetBearing);
             cp.distToE = cp.location.distance(fireLocation);
             double distToNearestSq = cp.distToE * cp.distToE;
 
@@ -94,7 +92,7 @@ public class MeleeWave implements HistoryLog.LogListener{
 
             cp.distToWall = Math.min(
                             Math.min(cp.location.x - 18,cp.location.y - 18),
-                            Math.min(MeleeSurf.MAX_X - 18 - cp.location.x, MeleeSurf.MAX_Y - 18 - cp.location.y));
+                            Math.min(Surf.MAX_X - 18 - cp.location.x, Surf.MAX_Y - 18 - cp.location.y));
 
             cp.enemiesAlive = botNames.size();
 
@@ -129,22 +127,19 @@ public class MeleeWave implements HistoryLog.LogListener{
 
     public void calcDangers(Point2D.Double myLocation){
         surfable = false;
-        Enumeration<EnemyInfo> en = snapshot.elements();
+        Enumeration<DangerBot> en = snapshot.elements();
         while(en.hasMoreElements()){
-            EnemyInfo target = en.nextElement();
+            DangerBot target = en.nextElement();
 
             if(target.name.equals(firedBy))
                 continue;
 
-            double targetBearing = MeleeSurf.absoluteBearing(fireLocation,target.location);
-            double latVel = target.velocity*FastTrig.sin(target.heading - targetBearing);
+            double targetBearing = Surf.absoluteBearing(fireLocation,target.location);
+            double latVel = target.velocity*HandBrake.sin(target.heading - targetBearing);
             double distToE = target.location.distance(fireLocation);
-            double meBearing = MeleeSurf.absoluteBearing(fireLocation,myLocation);
+            double meBearing = Surf.absoluteBearing(fireLocation,myLocation);
 
-            KDTree.WeightedManhattan<MeleeScan> tree = firer.targets.get(target.name);
-                    //// - weight top 3 scans by inverse distance from 'actual scan',
-                    ////    based on what they are doing from his perspective,
-                    ////    weight each bot by inverse distance-to-him squared
+            KDTree.WeightedManhattan<Scanner> tree = firer.targets.get(target.name);
             int k = 0;
             if(tree == null)
                 if(firer.defaultAim != null){
@@ -152,60 +147,59 @@ public class MeleeWave implements HistoryLog.LogListener{
                     k = 1;
                 }
                 else{
-                    tree = MeleeSurf.GF_0_tree;
+                    tree = Surf.GF_0_tree;
                     k = 1;
                 }
 
-            double MEA = MeleeSurf.maxEscapeAngle(bulletVelocity);
+            double MEA = Surf.maxEscapeAngle(bulletVelocity);
 
             if(Math.abs(Utils.normalRelativeAngle(targetBearing - meBearing)) > 3*MEA)
                 continue;
 
             double GFcorrection = Math.signum(latVel)*MEA;
 
-            double botWeight = 1/(distToE*distToE);//+10*target.energy);
+            double botWeight = 1/(distToE*distToE);
             double[] bins = new double[360];
 
             do{
-                List<KDTree.SearchResult<MeleeScan>> cluster = tree.nearestNeighbours(
+                List<KDTree.SearchResult<Scanner>> cluster = tree.nearestNeighbours(
                             target.targetDescriptor(),
                             Math.min(10,tree.size())
                             );
 
-                Iterator<KDTree.SearchResult<MeleeScan>> it = cluster.iterator();
+                Iterator<KDTree.SearchResult<Scanner>> it = cluster.iterator();
                 double weight = botWeight*Math.exp(-k);
                 double clusterDistance = 0;
                 while(it.hasNext()){
-                    KDTree.SearchResult<MeleeScan> v = it.next();
+                    KDTree.SearchResult<Scanner> v = it.next();
                     clusterDistance += v.distance;
                 }
                 clusterDistance /= cluster.size();
                 it = cluster.iterator();
                 while(it.hasNext()){
-                    KDTree.SearchResult<MeleeScan> v = it.next();
+                    KDTree.SearchResult<Scanner> v = it.next();
                     double fireAngle = Utils.normalAbsoluteAngle
                                     (v.payload.GF*GFcorrection + targetBearing);
 
                     if(Math.abs(Utils.normalRelativeAngle(fireAngle - meBearing)) < 2*MEA){
-                        MeleeSurf.smoothAround(bins,((int)(fireAngle*(180/Math.PI)))%360,
-                                    18,v.payload.weight*weight*FastTrig.exp(-0.5*sqr(v.distance/clusterDistance)));
+                        Surf.smoothAround(bins,((int)(fireAngle*(180/Math.PI)))%360,
+                                    18,v.payload.weight*weight*HandBrake.exp(-0.5*sqr(v.distance/clusterDistance)));
                         surfable = true;
                     }
                 }
                 k++;
 
-                        // botWeight = botWeight*Math.exp(-tree.size());
                 tree = firer.defaultAim;
 
             }while(k == 1);
 
 
-            MeleeSurf.areaNormalize(bins);
+            Surf.areaNormalize(bins);
             for(int i = 0; i < bins.length; i++)
                 this.bins[i] += botWeight*bins[i];
         }
 
-        MeleeSurf.areaNormalize(this.bins);
+        Surf.areaNormalize(this.bins);
         needsDangerRecalc = false;
     }
 
@@ -220,8 +214,8 @@ public class MeleeWave implements HistoryLog.LogListener{
         double t = 0;
         while(t < 91){
             t++;
-            Point2D.Double bP = MeleeSurf.project(currentbP,heading,velocity*(t+1));
-            Point2D.Double lastbP = MeleeSurf.project(currentbP,heading,velocity*t);
+            Point2D.Double bP = Surf.project(currentbP,heading,velocity*(t+1));
+            Point2D.Double lastbP = Surf.project(currentbP,heading,velocity*t);
             double waveRadius = bulletVelocity * (time - fireTime + t);
             double lastWaveRadius = waveRadius - bulletVelocity;
 
@@ -232,12 +226,6 @@ public class MeleeWave implements HistoryLog.LogListener{
                 break;
 
             if (en < waveRadius && len > lastWaveRadius && en < len){
-                //we have intersection!
-                // 4 cases:
-                //1: closer to me
-                //2: closer to enemy
-                //3: overlaps entire wave
-                //4: contained within wave
 
                 Point2D.Double p1, p2;
 
@@ -258,8 +246,8 @@ public class MeleeWave implements HistoryLog.LogListener{
                 else // 2 & 4
                     p2 = lastbP;
 
-                double a1 = MeleeSurf.absoluteBearing(fireLocation, p1);
-                double a2 = MeleeSurf.absoluteBearing(fireLocation, p2);
+                double a1 = Surf.absoluteBearing(fireLocation, p1);
+                double a2 = Surf.absoluteBearing(fireLocation, p2);
                 double aDiff = Utils.normalRelativeAngle(a2 - a1);
                 double angle = Utils.normalAbsoluteAngle(a1 + aDiff/2);
                 double width = Math.abs(aDiff);
@@ -284,7 +272,7 @@ public class MeleeWave implements HistoryLog.LogListener{
         }
     }
     void checkShadows(Point2D.Double bulletLocation){
-        double bulletAngle = Utils.normalAbsoluteAngle(MeleeSurf.absoluteBearing(fireLocation, bulletLocation));
+        double bulletAngle = Utils.normalAbsoluteAngle(Surf.absoluteBearing(fireLocation, bulletLocation));
         int index = (int)(botShadowBins.length*bulletAngle*0.5/Math.PI)%botShadowBins.length;
         if (botShadowBins[index] == 0.0)
             System.out.println("Hit in bullet shadow!");

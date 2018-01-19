@@ -58,13 +58,13 @@ public class HistoryLog{
             double dy = pair.after.location.y - pair.before.location.y;
             double dv = pair.after.velocity - pair.before.velocity;
             double de = pair.after.energy - pair.before.energy;
-            double dh = FastTrig.normalRelativeAngle(pair.after.heading - pair.before.heading);
+            double dh = HandBrake.normalRelativeAngle(pair.after.heading - pair.before.heading);
             
             double dt = (ticks - pair.beforeTime)/(pair.afterTime - pair.beforeTime);
             Point2D.Double interpolatedLocation = new Point2D.Double(pair.before.location.x + dx*dt, pair.before.location.y + dy*dt);
             
             return new InterpolatedLogEntry(interpolatedLocation,
-                                            FastTrig.normalAbsoluteAngle(pair.before.heading + dh*dt),
+                                            HandBrake.normalAbsoluteAngle(pair.before.heading + dh*dt),
                                             pair.before.velocity + dv*dt,
                                             pair.before.energy + de*dt,
                                             false);

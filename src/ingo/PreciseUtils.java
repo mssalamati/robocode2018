@@ -6,7 +6,6 @@ import java.util.*;
 public class PreciseUtils {
 	public static final int INTERSECTION = 3, PASSED = 1, NOT_REACHED = 2;
 
-	// high speed test to determine if the full method should be run this tick
 	public static int intersects(Point2D.Double botLocation, PreciseWave wave) {
 		double[] distSq = new double[] { wave.fireLocation.distanceSq(botLocation.x - 18, botLocation.y + 18),
 				wave.fireLocation.distanceSq(botLocation.x + 18, botLocation.y + 18),
@@ -97,14 +96,12 @@ public class PreciseUtils {
 		return bounds[0] <= q && q <= bounds[1];
 	}
 
-	// assumes between -PI*2 and PI*2
 	public static double fastRelativeAngle(double angle) {
-		return FastTrig.normalRelativeAngle(angle);
+		return HandBrake.normalRelativeAngle(angle);
 	}
 
-	// assumes between -PI*2 and PI*4
 	public static double fastAbsoluteAngle(double angle) {
-		return FastTrig.normalAbsoluteAngle(angle);
+		return HandBrake.normalAbsoluteAngle(angle);
 	}
 
 	static Point2D.Double[] vertIntersect(double centerX, double centerY, double r, double intersectX) {
@@ -112,10 +109,6 @@ public class PreciseUtils {
 		double sqrtVal = r * r - deltaX * deltaX;
 		if (sqrtVal < 0)
 			return new Point2D.Double[] {};
-
-		// if(sqrtVal == 0)
-		// return new Point2D.Double[]{
-		// new Point2D.Double(intersectX, centerY)};
 
 		sqrtVal = Math.sqrt(sqrtVal);
 		return new Point2D.Double[] { new Point2D.Double(intersectX, centerY + sqrtVal),
@@ -128,10 +121,6 @@ public class PreciseUtils {
 		if (sqrtVal < 0)
 			return new Point2D.Double[] {};
 
-		// if(sqrtVal == 0)
-		// return new Point2D.Double[]{
-		// new Point2D.Double(centerX, intersectY)};
-
 		sqrtVal = Math.sqrt(sqrtVal);
 		return new Point2D.Double[] { new Point2D.Double(centerX + sqrtVal, intersectY),
 				new Point2D.Double(centerX - sqrtVal, intersectY) };
@@ -142,7 +131,7 @@ public class PreciseUtils {
 	}
 
 	public static double angle(Point2D.Double source, Point2D.Double target) {
-		return FastTrig.atan2(target.x - source.x, target.y - source.y);
+		return HandBrake.atan2(target.x - source.x, target.y - source.y);
 	}
 
 }

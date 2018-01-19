@@ -1,41 +1,39 @@
 package ingo;
 
 import robocode.*;
-import java.util.Arrays;
 import java.util.Hashtable;
 import java.io.*;
 import java.awt.Color;
 
 public class Ingoo extends AdvancedRobot {
 
-	public static final boolean MC = false;
-	public static final boolean TC = false;
-	MeleeSurf move;
-	MeleeRadar radar;
-	MeleeGun gun;
-	static int[] finishes;
-
+	public static final boolean MC = false, TC = false;
+	static int[] deadbots;
+	Surf move;
+	Radar radar;
+	TankTube gun;
+	
 	public void run() {
 		getDataDirectory();
-		if (finishes == null)
-			finishes = new int[getOthers() + 1];
+		if (deadbots == null)
+			deadbots = new int[getOthers() + 1];
 		setAdjustRadarForGunTurn(true);
 		setAdjustRadarForRobotTurn(true);
 		setAdjustGunForRobotTurn(true);
-		setColors(Color.RED, Color.WHITE, Color.GREEN);
+		setColors(Color.BLACK, Color.RED, Color.BLACK);
 		if (!TC)
 			try {
-				move = new MeleeSurf(this);
+				move = new Surf(this);
 			} catch (Exception ex) {
 				contain(ex);
 			}
 		try {
-			radar = new MeleeRadar(this);
+			radar = new Radar(this);
 		} catch (Exception ex) {
 			contain(ex);
 		}
 		try {
-			gun = new MeleeGun(this);
+			gun = new TankTube(this);
 		} catch (Exception ex) {
 			contain(ex);
 		}
@@ -69,7 +67,7 @@ public class Ingoo extends AdvancedRobot {
 	}
 
 	public void onSkippedTurn(SkippedTurnEvent e) {
-		System.out.println("Skipped turn");
+
 	}
 
 	public void onScannedRobot(ScannedRobotEvent e) {
@@ -147,8 +145,7 @@ public class Ingoo extends AdvancedRobot {
 	public void onDeath(DeathEvent e) {
 		try {
 			gun.onDeath(e);
-			finishes[getOthers()]++;
-			System.out.println("Finishes: " + Arrays.toString(finishes));
+			deadbots[getOthers()]++;
 		} catch (Exception ex) {
 			contain(ex);
 		}
@@ -157,8 +154,7 @@ public class Ingoo extends AdvancedRobot {
 	public void onWin(WinEvent e) {
 		try {
 			gun.onWin(e);
-			finishes[0]++;
-			System.out.println("Finishes: " + Arrays.toString(finishes));
+			deadbots[0]++;
 		} catch (Exception ex) {
 			contain(ex);
 		}
