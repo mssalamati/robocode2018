@@ -50,7 +50,7 @@ public class Ingoo extends AdvancedRobot {
 		setAdjustRadarForGunTurn(true);
 		setAdjustRadarForRobotTurn(true);
 		setAdjustGunForRobotTurn(true);
-		setColors(Color.BLACK, Color.GREEN, Color.BLACK);
+		setColors(Color.BLACK, Color.PINK, Color.BLACK);
 
 		if (!rnew) {
 			try {

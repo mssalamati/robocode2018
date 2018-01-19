@@ -235,13 +235,13 @@ public class Wave implements HistoryLog.LogListener{
                     PreciseWave wv = new PreciseWave();
                     wv.fireLocation = fireLocation;
                     wv.distanceTraveled = lastWaveRadius;
-                    p1 = PreciseUtils.intersection(lastbP,bP,wv);
+                    p1 = Utilities.intersection(lastbP,bP,wv);
                 }
                 if(len > waveRadius){//1 & 3
                     PreciseWave wv = new PreciseWave();
                     wv.fireLocation = fireLocation;
                     wv.distanceTraveled = waveRadius;
-                    p2 = PreciseUtils.intersection(lastbP,bP,wv);
+                    p2 = Utilities.intersection(lastbP,bP,wv);
                 }
                 else // 2 & 4
                     p2 = lastbP;

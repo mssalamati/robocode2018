@@ -3,7 +3,7 @@ package ingo;
 import java.awt.geom.*;
 import java.util.*;
 
-public class PreciseUtils {
+public class Utilities {
 	public static final int INTERSECTION = 3, PASSED = 1, NOT_REACHED = 2;
 
 	public static int intersects(Point2D.Double botLocation, PreciseWave wave) {
